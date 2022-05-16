@@ -15,15 +15,11 @@ p_load(digest)
 p_load(shinyjs)
 p_load(mapview)
 p_load(snowfall)
-# p_load(exactextractr)
 p_load(terra)
-# p_load(prioritizr)
-# p_load(velox)
 
 num_cores<-get_num_procs()-1
 cl <- makeCluster(num_cores, outfile = "")
 registerDoSNOW(cl)
-# registerDoParallel(cl)
 
 path_app<-""
 today<-read_file(paste0(path_app,"today.txt")) %>% as.Date()
@@ -50,41 +46,9 @@ for (i in 1:length(genusoi_list)){
   genusoi<-genusoi_list[i]
   path_evi<-paste0(path_app,"data/",genusoi,"/evi/")
   evi_files<-list.files(path_evi, full.names = T, pattern="\\.tif$") %>% sort()   
-  # tmp <- c(tmp,evi_files)
-  # print("original")
-  # print(evi_files)
-  # print(class(evi_files))
-  # print("terra character list")
-  # print(as.character(evi_files))
-  # print(class(as.character(evi_files)))
   
-  print("original rast")
-  # listyo <<- rast(evi_files)
-  # print(listyo)
-  # print(class(listyo))
   evi_ras_list <- rast(evi_files)
   evi_sta_list[[i]]<-evi_ras_list
-  # print("terra rast")
-  # listy <<- rast(as.character(evi_files))
-  # print(listy)
-  # print(class(listy))
-  
-  # creating the list of rasterlayer objects for current genusoi (i)
-  # evi_ras_list<-
-  #   foreach (r = 1:length(date_list),
-  #            .packages=c("tidyverse","raster"))  %dopar%  {
-  #              ras<-raster(evi_files[r])
-  #            # .packages=c("tidyverse","terra"))  %dopar%  {
-  #            #   ras<-rast(evi_files[r])
-  #              # print(r)
-  #              # ras<-evi_files[r]
-  #              ras
-  #            }
-  # evi_sta<-stack(evi_ras_list)      # create rasterstack object from the list of rasterlayer objects
-  # # evi_sta<-rast(evi_ras_list)
-  # print("original raster stack")
-  # print(evi_sta)
-  # evi_sta_list[[i]]<-evi_sta        # have evi_sta_list (vector of genusoi in evi) to hold the rasterstack for current genusoi (i)
 }
 
 for (i in 1:length(genusoi_list)){
@@ -92,26 +56,8 @@ for (i in 1:length(genusoi_list)){
   path_leaf<-paste0(path_app,"data/",genusoi,"/leaf/")
   leaf_files<-list.files(path_leaf, full.names = T, pattern="\\.tif$") %>% sort()
   
-  print("original rast")
-  # listyo <<- rast(evi_files)
-  # print(listyo)
-  # print(class(listyo))
   leaf_ras_list <- rast(leaf_files)
   leaf_sta_list[[i]]<-leaf_ras_list
-  
-  # leaf_ras_list<-
-  #   foreach (r = 1:length(date_list),
-  #            .packages=c("tidyverse","raster"))  %dopar%  {
-  #              ras<-raster(leaf_files[r])
-  #            # .packages=c("tidyverse","terra"))  %dopar%  {
-  #            #   ras<-rast(leaf_files[r])
-  #              # print(r)
-  #              # ras<-leaf_files[r]
-  #              ras
-  #            }
-  # leaf_sta<-stack(leaf_ras_list)
-  # # leaf_sta<-rast(leaf_ras_list)
-  # leaf_sta_list[[i]]<-leaf_sta
 }
 
 for (i in 1:length(genusoi_list)){
@@ -119,26 +65,8 @@ for (i in 1:length(genusoi_list)){
   path_flower<-paste0(path_app,"data/",genusoi,"/flower/")
   flower_files<-list.files(path_flower, full.names = T, pattern="\\.tif$") %>% sort()
   
-  print("original rast")
-  # listyo <<- rast(evi_files)
-  # print(listyo)
-  # print(class(listyo))
   flower_ras_list <- rast(flower_files)
   flower_sta_list[[i]]<-flower_ras_list
-  
-  # flower_ras_list<-
-  #   foreach (r = 1:length(date_list),
-  #            .packages=c("tidyverse","raster"))  %dopar%  {
-  #              ras<-raster(flower_files[r])
-  #            # .packages=c("tidyverse","terra"))  %dopar%  {
-  #            #   ras<-rast(flower_files[r])
-  #              # print(r)
-  #              # ras<-flower_files[r]
-  #              ras
-  #            }
-  # flower_sta<-stack(flower_ras_list)
-  # # flower_sta<-rast(flower_ras_list)
-  # flower_sta_list[[i]]<-flower_sta
 }
 
 for (i in 1:length(genusoi_list)){
@@ -146,39 +74,18 @@ for (i in 1:length(genusoi_list)){
   path_pollen<-paste0(path_app,"data/",genusoi,"/pollen/")
   pollen_files<-list.files(path_pollen, full.names = T, pattern="\\.tif$") %>% sort()
   
-  print("original rast")
-  # listyo <<- rast(evi_files)
-  # print(listyo)
-  # print(class(listyo))
   pollen_ras_list <- rast(pollen_files)
   pollen_sta_list[[i]]<-pollen_ras_list
-  
-  # pollen_ras_list<-
-  #   foreach (r = 1:length(date_list),
-  #            .packages=c("tidyverse","raster"))  %dopar%  {
-  #              ras<-raster(pollen_files[r])
-  #            # .packages=c("tidyverse","terra"))  %dopar%  {
-  #            #   ras<-rast(pollen_files[r])
-  #              # print(r)
-  #              # ras <- pollen_files[r]
-  #              ras
-  #            }
-  # pollen_sta<-stack(pollen_ras_list)
-  # # pollen_sta<-rast(pollen_ras_list)
-  # pollen_sta_list[[i]]<-pollen_sta
 }
 
 print(Sys.time())
 
 print("stop cluster")
-# stopCluster(cl)
+stopCluster(cl)
 
 # sta_list will consist of a list of lists that contain vectors of rasterstacks to each genousi for each type
 sta_list<-list(EVI=evi_sta_list,Leaf=leaf_sta_list,Flower=flower_sta_list, Pollen=pollen_sta_list)
 
-
-# print(sta_list)
-# print(class(sta_list))
 
 ####PAL####
 pal_evi<-colorNumeric(palette = "Greens",  domain = c(0,1), na.color = "transparent")
@@ -244,37 +151,37 @@ ui<-fillPage(
   # ),
   
   
-  # absolutePanel(id = "tweetfeed_shown",
-  #               class = "panel panel-default",
-  #               fixed = TRUE,draggable = TRUE,
-  #               top = "auto", left = 100, right = "auto", bottom = 10,
-  #               width = 300, height = 300,
-  #               style = "background-color: rgba(255,255,255,0);
-  #               border-color: rgba(255,255,255,0);
-  #               box-shadow: 0pt 0pt 0pt 0px",
-  #               
-  #               tags$script(src="https://apps.elfsight.com/p/platform.js",
-  #                           defer=NA),
-  #               # includeScript("https://apps.elfsight.com/p/platform.js"), # this causes the app to crash
-  #               tags$div(class = "elfsight-app-ab030cd9-764d-413a-9cfa-0e630029053f"),
-  #               actionButton("hidetweet", "Hide Twitter feed", class = "btn-primary")
-  #               
-  # )
-  # ,
-  # shinyjs::hidden(
-  #   absolutePanel(id = "tweetfeed_hidden",
-  #                 class = "panel panel-default",
-  #                 fixed = TRUE,draggable = FALSE,
-  #                 top = "auto", left = 100, right = "auto", bottom = 10,
-  #                 width = 300, height = "auto",
-  #                 style = "background-color: rgba(255,255,255,0);
-  #               border-color: rgba(255,255,255,0);
-  #               box-shadow: 0pt 0pt 0pt 0px",
-  #                 
-  #                 actionButton("showtweet", "Show Twitter feed", class = "btn-primary")
-  #                 
-  #   )
-  # ),
+  absolutePanel(id = "tweetfeed_shown",
+                class = "panel panel-default",
+                fixed = TRUE,draggable = TRUE,
+                top = "auto", left = 100, right = "auto", bottom = 10,
+                width = 300, height = 300,
+                style = "background-color: rgba(255,255,255,0);
+                border-color: rgba(255,255,255,0);
+                box-shadow: 0pt 0pt 0pt 0px",
+
+                tags$script(src="https://apps.elfsight.com/p/platform.js",
+                            defer=NA),
+                # includeScript("https://apps.elfsight.com/p/platform.js"), # this causes the app to crash
+                tags$div(class = "elfsight-app-ab030cd9-764d-413a-9cfa-0e630029053f"),
+                actionButton("hidetweet", "Hide Twitter feed", class = "btn-primary")
+
+  )
+  ,
+  shinyjs::hidden(
+    absolutePanel(id = "tweetfeed_hidden",
+                  class = "panel panel-default",
+                  fixed = TRUE,draggable = FALSE,
+                  top = "auto", left = 100, right = "auto", bottom = 10,
+                  width = 300, height = "auto",
+                  style = "background-color: rgba(255,255,255,0);
+                border-color: rgba(255,255,255,0);
+                box-shadow: 0pt 0pt 0pt 0px",
+
+                  actionButton("showtweet", "Show Twitter feed", class = "btn-primary")
+
+    )
+  ),
   
   absolutePanel(id = "misc",
                 class = "panel panel-default",
@@ -322,11 +229,6 @@ ui<-fillPage(
                         )
                 )
   )
-  # absolutePanel(id = "figures2", class = "panel panel-default", fixed = TRUE,draggable = TRUE, top = 60+280, left = "auto", right = 60, bottom = "auto",width = 300, height = "auto", 
-  #               
-  #               # h4("Spatial patterns"),
-  #               plotOutput("neighbours",height = 360)
-  # )
 )
 
 #######SERVER#######
@@ -391,24 +293,6 @@ server<-function(input, output,session){
   v = reactiveValues()
   v$point = NULL
   
-  # ## REMEMBER TO REMOVE!!!
-  # count <- 0
-  # myfun2 <- function(raster_map, count) {
-  #   my_title <- tags$p(tags$style("p {color: red; font-size:22px}"),
-  #                      tags$b("My_beautiful_title_goes here"), tags$p("yooo"), count, tags$p("click(s)"))
-  #   # print(my_title)
-  #   # print(class(my_title))
-  #   
-  #   removeControl(raster_map, layerId = "tmp") %>%
-  #   addControl(my_title, position = "bottomright", layerId = "tmp")
-  #   
-  # }
-  # ## REMEMBER TO REMOVE!!!
-  # observeEvent(input$raster_map_click, {
-  #   count <<- count + 1
-  #   leafletProxy("raster_map") %>% myfun2(count)
-  #   })
-  
   #######Show popup on click########
   getPop <- reactive({
     r_type<-sta_list[[input$type,drop=F]]
@@ -439,7 +323,7 @@ server<-function(input, output,session){
 
     output <- content#list(content = content) #, lat = click$lat, lng = click$lng)
 
-  })#%>% bindEvent(input$raster_map_click)
+  })
 
   popups <- function(raster_map){
     # print("content")
@@ -457,9 +341,9 @@ server<-function(input, output,session){
       addPopups(lng, lat, content)
   }
 
-  observeEvent(input$raster_map_click, {
-    leafletProxy("raster_map") %>% popups()
-  })
+  # observeEvent(input$raster_map_click, {
+  #   leafletProxy("raster_map") %>% popups()
+  # })
   
   ########Show lineplot on click#########
   getLinePlot <- reactive({
@@ -483,15 +367,11 @@ server<-function(input, output,session){
     print("genusoiandType")
     print(genusoiandType)
 
-    # Testing rasters at one specific location
-    # lat<- 37.099016
-    # lng<- -122.194813
     click <- input$raster_map_click
     lat<-(90+click$lat)%%180-90
     lng<-(180+click$lng)%%360-180
 
     # sp<-SpatialPoints(cbind(lng, lat), proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
-    # point <- cbind(lng,lat)
     y <- vect(cbind(lng,lat), crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 ")
 
 
@@ -504,31 +384,6 @@ server<-function(input, output,session){
     ts <- select(as.data.frame(ts), -1)
     colnames(ts) <- c(1:length(ts[1,]))
     ts<-as.data.frame(t(ts))
-
-    #####old ts#####
-    # ts<-
-    #   foreach(i = 1:length(date_list),
-    #           # .packages=(c("raster","tidyverse")),
-    #           .packages=(c("terra","tidyverse")),
-    #           .combine="rbind") %dopar% {
-    #             # print(r_type_genusoi[[i]])
-    #             # print(class(r_type_genusoi[[i]])) # RasterLayer object
-    #             # print(class(r_type_genusoi)) # RasterStack object
-    #             # value<-raster::extract(r_type_genusoi[[i]], sp )
-    #
-    #             print(r_type_genusoi[[i]])
-    #             print(class(r_type_genusoi[[i]]))
-    #             value<-terra::extract(r_type_genusoi[[i]], y)
-    #
-    #             # value <- exactextractr::exact_extract(r_type_genusoi[[i]], point_sf)
-    #             # value <- prioritizr::fast_extract(r_type_genusoi[[i]], sf::sf(sp))
-    #             # info <- velox::velox(r_type_genusoi[[i]])
-    #             # value <- info$extract(spp)
-    #             value
-    #           }
-    # print(ts)
-    # print(r_type_genusoi) # RasterStack object
-    #########
 
     tsdone <- Sys.time()
     print("tsdone")
@@ -559,13 +414,11 @@ server<-function(input, output,session){
         ylab(variable)+
         ggtitle(paste0("Longitude: ", round(lng,2), ", Latitude: ", round(lat,2))) +
         theme(plot.title = element_text(size = 10))
-      # })
 
     } else {
       plotty <- ggplot()+
         theme_void ()+
         ggtitle("\n No time series available.\n Contribute by submitting your data.")
-      # })
     }
 
     print("created the plot")
@@ -579,7 +432,6 @@ server<-function(input, output,session){
     # save lineplot as svg and display it as html using addControl
     ggsave(file="plotty.svg", plot=plotty, width=3.5, height=2.5)
     content = as.character(read_file(paste0("plotty.svg")))
-    # content = paste("hi")
 
     removeControl(raster_map, layerId = "lineplot") %>%
       addControl(content, position = "topright", layerId = "lineplot")
@@ -588,7 +440,7 @@ server<-function(input, output,session){
   # generate the popup and lineplot when user clicks map
   observeEvent(input$raster_map_click, {
     leafletProxy("raster_map") %>%
-      # popups() %>%
+      popups() %>%
       createLinePlot(getLinePlot())
   })
   
@@ -601,16 +453,16 @@ server<-function(input, output,session){
   })
   
   ######## show tweeet########
-  # observeEvent(input$showtweet, {
-  #   shinyjs::hide("tweetfeed_hidden")
-  #   shinyjs::show("tweetfeed_shown")
-  # })
-  
+  observeEvent(input$showtweet, {
+    shinyjs::hide("tweetfeed_hidden")
+    shinyjs::show("tweetfeed_shown")
+  })
+
   ######## hide tweeet ########
-  # observeEvent(input$hidetweet, {
-  #   shinyjs::hide("tweetfeed_shown")
-  #   shinyjs::show("tweetfeed_hidden")
-  # })
+  observeEvent(input$hidetweet, {
+    shinyjs::hide("tweetfeed_shown")
+    shinyjs::show("tweetfeed_hidden")
+  })
   
   #######form data#########
   formData <- reactive({

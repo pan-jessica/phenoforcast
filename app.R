@@ -14,13 +14,16 @@ p_load(shinyscreenshot)
 p_load(digest)
 p_load(shinyjs)
 p_load(mapview)
-# p_load(lattice)
-# p_load(htmlwidgets) #for onRender
-p_load(magrittr) #for svg?
+p_load(snowfall)
+# p_load(exactextractr)
+p_load(terra)
+# p_load(prioritizr)
+# p_load(velox)
 
 num_cores<-get_num_procs()-1
 cl <- makeCluster(num_cores, outfile = "")
 registerDoSNOW(cl)
+# registerDoParallel(cl)
 
 path_app<-""
 today<-read_file(paste0(path_app,"today.txt")) %>% as.Date()
@@ -39,22 +42,49 @@ genusoi_list <- c(
 evi_sta_list<-leaf_sta_list<-flower_sta_list<-pollen_sta_list<-vector(mode="list",length=length(genusoi_list))
 names(evi_sta_list)<-names(leaf_sta_list)<-names(flower_sta_list)<-names(pollen_sta_list)<-genusoi_list
 
+print(Sys.time())
+
+
 for (i in 1:length(genusoi_list)){
   # collecting tif files of evi type for each genusoi
   genusoi<-genusoi_list[i]
   path_evi<-paste0(path_app,"data/",genusoi,"/evi/")
   evi_files<-list.files(path_evi, full.names = T, pattern="\\.tif$") %>% sort()   
+  # tmp <- c(tmp,evi_files)
+  # print("original")
+  # print(evi_files)
+  # print(class(evi_files))
+  # print("terra character list")
+  # print(as.character(evi_files))
+  # print(class(as.character(evi_files)))
+  
+  print("original rast")
+  # listyo <<- rast(evi_files)
+  # print(listyo)
+  # print(class(listyo))
+  evi_ras_list <- rast(evi_files)
+  evi_sta_list[[i]]<-evi_ras_list
+  # print("terra rast")
+  # listy <<- rast(as.character(evi_files))
+  # print(listy)
+  # print(class(listy))
   
   # creating the list of rasterlayer objects for current genusoi (i)
-  evi_ras_list<-
-    foreach (r = 1:length(date_list),
-             .packages=c("tidyverse","raster"))  %dopar%  {
-               ras<-raster(evi_files[r])
-               print(r)
-               ras
-             }
-  evi_sta<-stack(evi_ras_list)      # create rasterstack object from the list of rasterlayer objects
-  evi_sta_list[[i]]<-evi_sta        # have evi_sta_list (vector of genusoi in evi) to hold the rasterstack for current genusoi (i)
+  # evi_ras_list<-
+  #   foreach (r = 1:length(date_list),
+  #            .packages=c("tidyverse","raster"))  %dopar%  {
+  #              ras<-raster(evi_files[r])
+  #            # .packages=c("tidyverse","terra"))  %dopar%  {
+  #            #   ras<-rast(evi_files[r])
+  #              # print(r)
+  #              # ras<-evi_files[r]
+  #              ras
+  #            }
+  # evi_sta<-stack(evi_ras_list)      # create rasterstack object from the list of rasterlayer objects
+  # # evi_sta<-rast(evi_ras_list)
+  # print("original raster stack")
+  # print(evi_sta)
+  # evi_sta_list[[i]]<-evi_sta        # have evi_sta_list (vector of genusoi in evi) to hold the rasterstack for current genusoi (i)
 }
 
 for (i in 1:length(genusoi_list)){
@@ -62,15 +92,26 @@ for (i in 1:length(genusoi_list)){
   path_leaf<-paste0(path_app,"data/",genusoi,"/leaf/")
   leaf_files<-list.files(path_leaf, full.names = T, pattern="\\.tif$") %>% sort()
   
-  leaf_ras_list<-
-    foreach (r = 1:length(date_list),
-             .packages=c("tidyverse","raster"))  %dopar%  {
-               ras<-raster(leaf_files[r])
-               print(r)
-               ras
-             }
-  leaf_sta<-stack(leaf_ras_list)
-  leaf_sta_list[[i]]<-leaf_sta
+  print("original rast")
+  # listyo <<- rast(evi_files)
+  # print(listyo)
+  # print(class(listyo))
+  leaf_ras_list <- rast(leaf_files)
+  leaf_sta_list[[i]]<-leaf_ras_list
+  
+  # leaf_ras_list<-
+  #   foreach (r = 1:length(date_list),
+  #            .packages=c("tidyverse","raster"))  %dopar%  {
+  #              ras<-raster(leaf_files[r])
+  #            # .packages=c("tidyverse","terra"))  %dopar%  {
+  #            #   ras<-rast(leaf_files[r])
+  #              # print(r)
+  #              # ras<-leaf_files[r]
+  #              ras
+  #            }
+  # leaf_sta<-stack(leaf_ras_list)
+  # # leaf_sta<-rast(leaf_ras_list)
+  # leaf_sta_list[[i]]<-leaf_sta
 }
 
 for (i in 1:length(genusoi_list)){
@@ -78,15 +119,26 @@ for (i in 1:length(genusoi_list)){
   path_flower<-paste0(path_app,"data/",genusoi,"/flower/")
   flower_files<-list.files(path_flower, full.names = T, pattern="\\.tif$") %>% sort()
   
-  flower_ras_list<-
-    foreach (r = 1:length(date_list),
-             .packages=c("tidyverse","raster"))  %dopar%  {
-               ras<-raster(flower_files[r])
-               print(r)
-               ras
-             }
-  flower_sta<-stack(flower_ras_list)
-  flower_sta_list[[i]]<-flower_sta
+  print("original rast")
+  # listyo <<- rast(evi_files)
+  # print(listyo)
+  # print(class(listyo))
+  flower_ras_list <- rast(flower_files)
+  flower_sta_list[[i]]<-flower_ras_list
+  
+  # flower_ras_list<-
+  #   foreach (r = 1:length(date_list),
+  #            .packages=c("tidyverse","raster"))  %dopar%  {
+  #              ras<-raster(flower_files[r])
+  #            # .packages=c("tidyverse","terra"))  %dopar%  {
+  #            #   ras<-rast(flower_files[r])
+  #              # print(r)
+  #              # ras<-flower_files[r]
+  #              ras
+  #            }
+  # flower_sta<-stack(flower_ras_list)
+  # # flower_sta<-rast(flower_ras_list)
+  # flower_sta_list[[i]]<-flower_sta
 }
 
 for (i in 1:length(genusoi_list)){
@@ -94,20 +146,39 @@ for (i in 1:length(genusoi_list)){
   path_pollen<-paste0(path_app,"data/",genusoi,"/pollen/")
   pollen_files<-list.files(path_pollen, full.names = T, pattern="\\.tif$") %>% sort()
   
-  pollen_ras_list<-
-    foreach (r = 1:length(date_list),
-             .packages=c("tidyverse","raster"))  %dopar%  {
-               ras<-raster(pollen_files[r])
-               print(r)
-               ras
-             }
-  pollen_sta<-stack(pollen_ras_list)
-  pollen_sta_list[[i]]<-pollen_sta
+  print("original rast")
+  # listyo <<- rast(evi_files)
+  # print(listyo)
+  # print(class(listyo))
+  pollen_ras_list <- rast(pollen_files)
+  pollen_sta_list[[i]]<-pollen_ras_list
+  
+  # pollen_ras_list<-
+  #   foreach (r = 1:length(date_list),
+  #            .packages=c("tidyverse","raster"))  %dopar%  {
+  #              ras<-raster(pollen_files[r])
+  #            # .packages=c("tidyverse","terra"))  %dopar%  {
+  #            #   ras<-rast(pollen_files[r])
+  #              # print(r)
+  #              # ras <- pollen_files[r]
+  #              ras
+  #            }
+  # pollen_sta<-stack(pollen_ras_list)
+  # # pollen_sta<-rast(pollen_ras_list)
+  # pollen_sta_list[[i]]<-pollen_sta
 }
 
+print(Sys.time())
+
+print("stop cluster")
+# stopCluster(cl)
 
 # sta_list will consist of a list of lists that contain vectors of rasterstacks to each genousi for each type
 sta_list<-list(EVI=evi_sta_list,Leaf=leaf_sta_list,Flower=flower_sta_list, Pollen=pollen_sta_list)
+
+
+# print(sta_list)
+# print(class(sta_list))
 
 ####PAL####
 pal_evi<-colorNumeric(palette = "Greens",  domain = c(0,1), na.color = "transparent")
@@ -134,43 +205,43 @@ ui<-fillPage(
   
   leafletOutput("raster_map", height="100%",width="100%"),
   
-  absolutePanel(id = "controls", 
-                class = "panel panel-default", 
-                fixed = TRUE,draggable = TRUE, 
+  absolutePanel(id = "controls",
+                class = "panel panel-default",
+                fixed = TRUE, draggable = TRUE,
                 top = 50, right = "auto", left = 60, bottom = "auto",
                 width = "auto", height = "auto",
                 style = "background-color: rgba(255,255,255,0);
                 border-color: rgba(255,255,255,0);
                 box-shadow: 0pt 0pt 0pt 0px",
-                
+
                 h1(id="title","PhenoForecast"),
                 selectInput("type", "Type",
                             choices = c("EVI","Leaf", "Flower", "Pollen"),
                             selected =  "EVI"),
-                
+
                 selectInput("genus", "Genus",
                             choices = genusoi_list,
                             selected = genusoi_list[1]),
-                
+
                 # sliderInput("date", "Date", min=mindate, max=maxdate, timeFormat = "%Y-%m-%d", value=1, ticks=T),
                 sliderInput("day", "Day", min=14-length(date_list)+1, max=14, value=0, ticks=T)
-                # If not using custom CSS, set height of leafletOutput to a number instead of percent     
+                # If not using custom CSS, set height of leafletOutput to a number instead of percent
   ),
   
-  absolutePanel(id = "figure",
-                class = "panel panel-default",
-                fixed = TRUE,draggable = TRUE,
-                top = 60, left = "auto", right = 60, bottom = "auto",
-                width = 300, height = "auto",
-                style = "background-color: rgba(255,255,255,0);
-                border-color: rgba(255,255,255,0);
-                box-shadow: 0pt 0pt 0pt 0px",
-                
-                # h4("Temporal patterns"),
-                plotOutput("lineplot", height = 200)
-                
-                
-  ),
+  # absolutePanel(id = "figure",
+  #               class = "panel panel-default",
+  #               fixed = TRUE,draggable = TRUE,
+  #               top = 60, left = "auto", right = 60, bottom = "auto",
+  #               width = 300, height = "auto",
+  #               style = "background-color: rgba(255,255,255,0);
+  #               border-color: rgba(255,255,255,0);
+  #               box-shadow: 0pt 0pt 0pt 0px",
+  # 
+  #               # h4("Temporal patterns"),
+  #               plotOutput("lineplot", height = 200)
+  # 
+  # 
+  # ),
   
   
   # absolutePanel(id = "tweetfeed_shown",
@@ -214,8 +285,8 @@ ui<-fillPage(
                 text-align: right;
                 border-color: rgba(255,255,255,0);
                 box-shadow: 0pt 0pt 0pt 0px",
-                
-                
+
+
                 # actionButton("go", "Take a screenshot", class = "btn-primary"),
                 downloadButton('map_down', "Take a screenshot", class = 'dwnbttn'),
                 tags$head(tags$style(".dwnbttn{background-color:#337ab8; color: #ffffff;} .dwnbttn:focus{background-color:#337ab8; color: #ffffff;}")),
@@ -228,11 +299,11 @@ ui<-fillPage(
                 tags$script(async=NA,
                             src="https://platform.twitter.com/widgets.js",
                             charset="utf-8"),
-                
+
                 # includeScript("http://platform.twitter.com/widgets.js"),
                 # https://shiny.rstudio.com/articles/html-tags.html
                 # https://community.rstudio.com/t/include-a-button-in-a-shiny-app-to-tweet-the-url-to-the-app/8113/2
-                
+
                 tags$div(id="cite",align="right",
                          '', tags$em('"PhenoForecast"'), ' by Yiluan Song'
                 ),
@@ -279,14 +350,19 @@ server<-function(input, output,session){
     input_type <- unlist(input_type)
     date_label <- tags$div(date_label)
     
+    rasty <-reactiveRaster()
+    rasty <- raster(rasty)
+    # print(rasty)
+    
+    
     clearImages(raster_map) %>%
       clearControls() %>%
-      addRasterImage(reactiveRaster(), colors = pal[[input_type]], opacity = 0.8, layerId = "map") %>%
+      addRasterImage(rasty, colors = pal[[input_type]], opacity = 0.8, layerId = "map") %>%
       addLegend(pal =  pal[[input_type]], values = seq(minlist[[input_type]],maxlist[[input_type]], length.out=6),
                 position = "bottomleft", title = "", layerId = "map") %>%
       addControl(date_label, position = "bottomleft")
     
-  }
+  }     # needs to adapt the new spatRaster from TERRA: fixed
   
   reactiveRaster <- reactive({reactiveInput()$r_type_genusoi_date_lim})
   
@@ -315,13 +391,31 @@ server<-function(input, output,session){
   v = reactiveValues()
   v$point = NULL
   
+  # ## REMEMBER TO REMOVE!!!
+  # count <- 0
+  # myfun2 <- function(raster_map, count) {
+  #   my_title <- tags$p(tags$style("p {color: red; font-size:22px}"),
+  #                      tags$b("My_beautiful_title_goes here"), tags$p("yooo"), count, tags$p("click(s)"))
+  #   # print(my_title)
+  #   # print(class(my_title))
+  #   
+  #   removeControl(raster_map, layerId = "tmp") %>%
+  #   addControl(my_title, position = "bottomright", layerId = "tmp")
+  #   
+  # }
+  # ## REMEMBER TO REMOVE!!!
+  # observeEvent(input$raster_map_click, {
+  #   count <<- count + 1
+  #   leafletProxy("raster_map") %>% myfun2(count)
+  #   })
+  
   #######Show popup on click########
   getPop <- reactive({
     r_type<-sta_list[[input$type,drop=F]]
     r_type_genusoi<-r_type[[input$genus]]
     r_type_genusoi_date<-r_type_genusoi[[input$day-14+length(date_list)]]
     if (input$type=="Pollen") {
-      r_type_genusoi_date[r_type_genusoi_date<0]<-0
+      r_type_genusoi_date[r_type_genusoi_date < 0]<-0
       r_type_genusoi_date<-r_type_genusoi_date^(1/4)
     }
     variable<-variable_list[[input$type]]
@@ -332,27 +426,25 @@ server<-function(input, output,session){
     text_lat<-paste0("Latitude: ", round(lat,2))
     text_lng<-paste0("Longtitude: ", round(lng,2))
     text_date<-paste0("Date: ", date_list[[input$day-14+length(date_list)]])
-    value<-round(raster::extract(r_type_genusoi_date,data.frame(lng,lat)),2)
-    text_value<-paste0(variable,": ", value,"")
+    value<-round(terra::extract(r_type_genusoi_date, data.frame(lng,lat)), 2)
+    text_value<-paste0(variable,": ", value[2],"")
     
-    content <- list(
-      text_lat, tags$br(),
-      text_lng, tags$br(),
-      text_date, tags$br(),
-      text_value, tags$br()
-    )
+    content <- paste(text_lat, text_lng, text_date, text_value, sep="<br/>")
+    
+    # print(content)
+    
     p = data.frame(lng = click$lng, lat = click$lat)
     v$point = NULL
     v$point = rbind(v$point,p)
-    
-    output <- list(content = content) #, lat = click$lat, lng = click$lng)
-    
-  })%>% bindEvent(input$raster_map_click)
-  
+
+    output <- content#list(content = content) #, lat = click$lat, lng = click$lng)
+
+  })#%>% bindEvent(input$raster_map_click)
+
   popups <- function(raster_map){
     # print("content")
-    cont <- getPop()
-    content <- as.character(tagList(cont[1]))
+    content <- getPop()
+    # content <- as.character(tagList(cont[1]))
     # lat <- unlist(cont[2])
     # lng <- unlist(cont[3])
     lng<-lat<-NULL
@@ -360,18 +452,22 @@ server<-function(input, output,session){
       lng=v$point[,1]
       lat=v$point[,2]
     }
-    
+
     clearPopups(raster_map) %>%
       addPopups(lng, lat, content)
-    
   }
-  
-  # observe({
-  #   leafletProxy("raster_map") %>% popups()
-  # }) %>% bindEvent(input$raster_map_click)
+
+  observeEvent(input$raster_map_click, {
+    leafletProxy("raster_map") %>% popups()
+  })
   
   ########Show lineplot on click#########
   getLinePlot <- reactive({
+
+    start <- Sys.time();
+    print("start")
+    print(start)
+
     r_type<-sta_list[[input$type,drop=F]]
     r_type_genusoi<-r_type[[input$genus]]
     # r_type_genusoi_date<-r_type_genusoi[[input$day-14+length(date_list)]]
@@ -382,29 +478,75 @@ server<-function(input, output,session){
     if (input$type=="Flower" || input$type=="Pollen") {
       col_line<-"red"
     }
-    
+
+    genusoiandType <- Sys.time();
+    print("genusoiandType")
+    print(genusoiandType)
+
+    # Testing rasters at one specific location
+    # lat<- 37.099016
+    # lng<- -122.194813
     click <- input$raster_map_click
     lat<-(90+click$lat)%%180-90
     lng<-(180+click$lng)%%360-180
-    
-    sp<-SpatialPoints(cbind(lng, lat),proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
-    
-    ts<-
-      foreach(i = 1:length(date_list),
-              .packages=(c("raster","tidyverse")),
-              .combine="rbind") %dopar% {
-                value<-raster::extract(r_type_genusoi[[i]], sp )
-                value
-              }
+
+    # sp<-SpatialPoints(cbind(lng, lat), proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
+    # point <- cbind(lng,lat)
+    y <- vect(cbind(lng,lat), crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 ")
+
+
+    spdone <- Sys.time()
+    print("spdone")
+    print(spdone)
+
+
+    ts <- terra::extract(x = subset(r_type_genusoi, 1:length(date_list)), y = y)
+    ts <- select(as.data.frame(ts), -1)
+    colnames(ts) <- c(1:length(ts[1,]))
+    ts<-as.data.frame(t(ts))
+
+    #####old ts#####
+    # ts<-
+    #   foreach(i = 1:length(date_list),
+    #           # .packages=(c("raster","tidyverse")),
+    #           .packages=(c("terra","tidyverse")),
+    #           .combine="rbind") %dopar% {
+    #             # print(r_type_genusoi[[i]])
+    #             # print(class(r_type_genusoi[[i]])) # RasterLayer object
+    #             # print(class(r_type_genusoi)) # RasterStack object
+    #             # value<-raster::extract(r_type_genusoi[[i]], sp )
+    #
+    #             print(r_type_genusoi[[i]])
+    #             print(class(r_type_genusoi[[i]]))
+    #             value<-terra::extract(r_type_genusoi[[i]], y)
+    #
+    #             # value <- exactextractr::exact_extract(r_type_genusoi[[i]], point_sf)
+    #             # value <- prioritizr::fast_extract(r_type_genusoi[[i]], sf::sf(sp))
+    #             # info <- velox::velox(r_type_genusoi[[i]])
+    #             # value <- info$extract(spp)
+    #             value
+    #           }
+    # print(ts)
+    # print(r_type_genusoi) # RasterStack object
+    #########
+
+    tsdone <- Sys.time()
+    print("tsdone")
+    print(tsdone)
+
     if (input$type=="Pollen") {
       ts[ts<0]<-0
       ts<-ts^(1/4)
     }
     ts_df<-data.frame(ts, date_list)
-    colnames(ts_df)<-c("value", "date")
-    
+    colnames(ts_df) <- c("value","date")
+    # print(ts_df)
+
+    print("ts_df done")
+    print(Sys.time())
+
     plotty <- NULL
-    
+
     if (!any(is.na(ts_df))) {
       plotty <- ggplot(ts_df)+
         geom_line(aes(x=date, y=value),col=col_line)+
@@ -417,49 +559,54 @@ server<-function(input, output,session){
         ylab(variable)+
         ggtitle(paste0("Longitude: ", round(lng,2), ", Latitude: ", round(lat,2))) +
         theme(plot.title = element_text(size = 10))
-      
+      # })
+
     } else {
       plotty <- ggplot()+
         theme_void ()+
         ggtitle("\n No time series available.\n Contribute by submitting your data.")
+      # })
     }
-    
-    output = plotty
-    
+
+    print("created the plot")
+    print(Sys.time())
+
+    return(plotty)
+
   })
-  
+
   createLinePlot <- function(raster_map, plotty) {
     # save lineplot as svg and display it as html using addControl
     ggsave(file="plotty.svg", plot=plotty, width=3.5, height=2.5)
     content = as.character(read_file(paste0("plotty.svg")))
-    
+    # content = paste("hi")
+
     removeControl(raster_map, layerId = "lineplot") %>%
       addControl(content, position = "topright", layerId = "lineplot")
   }
   
-  toListen <- reactive({list(input$raster_map_click, input$type)})
-  
+  # generate the popup and lineplot when user clicks map
   observeEvent(input$raster_map_click, {
-    leafletProxy("raster_map") %>% 
-      popups() %>%
+    leafletProxy("raster_map") %>%
+      # popups() %>%
       createLinePlot(getLinePlot())
   })
   
+  # update the lineplot with the user changes the input/form data
   observeEvent(formData(), {
     if (!is.null(v$point)){
-      print("yes there was a click")
       leafletProxy("raster_map") %>%
         createLinePlot(getLinePlot())
     }
   })
   
-  #######show tweeet########
+  ######## show tweeet########
   # observeEvent(input$showtweet, {
   #   shinyjs::hide("tweetfeed_hidden")
   #   shinyjs::show("tweetfeed_shown")
   # })
   
-  #######hide tweeet########
+  ######## hide tweeet ########
   # observeEvent(input$hidetweet, {
   #   shinyjs::hide("tweetfeed_shown")
   #   shinyjs::show("tweetfeed_hidden")

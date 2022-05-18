@@ -15,11 +15,15 @@ p_load(digest)
 p_load(shinyjs)
 p_load(mapview)
 p_load(snowfall)
+# p_load(exactextractr)
 p_load(terra)
+# p_load(prioritizr)
+# p_load(velox)
 
 num_cores<-get_num_procs()-1
 cl <- makeCluster(num_cores, outfile = "")
 registerDoSNOW(cl)
+# registerDoParallel(cl)
 
 path_app<-""
 today<-read_file(paste0(path_app,"today.txt")) %>% as.Date()
@@ -106,11 +110,46 @@ variable_list<-list(EVI="Enhanced Vegetation Index",
 ui<-fillPage(
   shinyjs::useShinyjs(),
   #shinyjs::inlineCSS(appCSS),
+  tags$head(
+    # include html2canvas library
+    tags$script(src = "http://html2canvas.hertzen.com/dist/html2canvas.min.js"),
+    # script for creating the prompt for download
+    tags$script(
+      "
+            function saveAs(uri, filename) {
+
+                var link = document.createElement('a');
+
+                if (typeof link.download === 'string') {
+
+                    link.href = uri;
+                    link.download = filename;
+
+                    //Firefox requires the link to be in the body
+                    document.body.appendChild(link);
+
+                    //simulate click
+                    link.click();
+
+                    //remove the link when done
+                    document.body.removeChild(link);
+
+                } else {
+
+                    window.open(uri);
+
+                }
+            }
+            "
+    )
+  ),
   tags$style(type = "text/css", 
              "html, body {width:100%; height:100%;}"
   ),
   
   leafletOutput("raster_map", height="100%",width="100%"),
+  
+  # useShinyjs(),
   
   absolutePanel(id = "controls",
                 class = "panel panel-default",
@@ -120,16 +159,16 @@ ui<-fillPage(
                 style = "background-color: rgba(255,255,255,0);
                 border-color: rgba(255,255,255,0);
                 box-shadow: 0pt 0pt 0pt 0px",
-
+                
                 h1(id="title","PhenoForecast"),
                 selectInput("type", "Type",
                             choices = c("EVI","Leaf", "Flower", "Pollen"),
                             selected =  "EVI"),
-
+                
                 selectInput("genus", "Genus",
                             choices = genusoi_list,
                             selected = genusoi_list[1]),
-
+                
                 # sliderInput("date", "Date", min=mindate, max=maxdate, timeFormat = "%Y-%m-%d", value=1, ticks=T),
                 sliderInput("day", "Day", min=14-length(date_list)+1, max=14, value=0, ticks=T)
                 # If not using custom CSS, set height of leafletOutput to a number instead of percent
@@ -159,13 +198,13 @@ ui<-fillPage(
                 style = "background-color: rgba(255,255,255,0);
                 border-color: rgba(255,255,255,0);
                 box-shadow: 0pt 0pt 0pt 0px",
-
+                
                 tags$script(src="https://apps.elfsight.com/p/platform.js",
                             defer=NA),
                 # includeScript("https://apps.elfsight.com/p/platform.js"), # this causes the app to crash
                 tags$div(class = "elfsight-app-ab030cd9-764d-413a-9cfa-0e630029053f"),
                 actionButton("hidetweet", "Hide Twitter feed", class = "btn-primary")
-
+                
   )
   ,
   shinyjs::hidden(
@@ -177,9 +216,9 @@ ui<-fillPage(
                   style = "background-color: rgba(255,255,255,0);
                 border-color: rgba(255,255,255,0);
                 box-shadow: 0pt 0pt 0pt 0px",
-
+                  
                   actionButton("showtweet", "Show Twitter feed", class = "btn-primary")
-
+                  
     )
   ),
   
@@ -192,9 +231,10 @@ ui<-fillPage(
                 text-align: right;
                 border-color: rgba(255,255,255,0);
                 box-shadow: 0pt 0pt 0pt 0px",
-
-
+                
+                
                 # actionButton("go", "Take a screenshot", class = "btn-primary"),
+                # actionButton("screenshot","Take Screenshot"),     # uses html2canvas JS library
                 downloadButton('map_down', "Take a screenshot", class = 'dwnbttn'),
                 tags$head(tags$style(".dwnbttn{background-color:#337ab8; color: #ffffff;} .dwnbttn:focus{background-color:#337ab8; color: #ffffff;}")),
                 br(),
@@ -206,11 +246,11 @@ ui<-fillPage(
                 tags$script(async=NA,
                             src="https://platform.twitter.com/widgets.js",
                             charset="utf-8"),
-
+                
                 # includeScript("http://platform.twitter.com/widgets.js"),
                 # https://shiny.rstudio.com/articles/html-tags.html
                 # https://community.rstudio.com/t/include-a-button-in-a-shiny-app-to-tweet-the-url-to-the-app/8113/2
-
+                
                 tags$div(id="cite",align="right",
                          '', tags$em('"PhenoForecast"'), ' by Yiluan Song'
                 ),
@@ -234,10 +274,19 @@ ui<-fillPage(
 #######SERVER#######
 server<-function(input, output,session){
   
+  observeEvent(input$screenshot,{
+    shinyjs::runjs(
+      'html2canvas(document.querySelector("body")).then(canvas => {
+                saveAs(canvas.toDataURL(), "shinyapp.png");
+           });'
+    )
+  })
   mymap <- reactive({
-    leaflet() %>%
-      addTiles()%>%
+    m<-leaflet() %>%
+      # addTiles()%>%
+      addProviderTiles(providers$OpenStreetMap) %>%
       setView(lng = -98, lat = 38, zoom = 4)
+    m
   })
   
   output$raster_map = renderLeaflet({
@@ -320,11 +369,11 @@ server<-function(input, output,session){
     p = data.frame(lng = click$lng, lat = click$lat)
     v$point = NULL
     v$point = rbind(v$point,p)
-
+    
     output <- content#list(content = content) #, lat = click$lat, lng = click$lng)
-
+    
   })
-
+  
   popups <- function(raster_map){
     # print("content")
     content <- getPop()
@@ -336,22 +385,25 @@ server<-function(input, output,session){
       lng=v$point[,1]
       lat=v$point[,2]
     }
-
+    
     clearPopups(raster_map) %>%
       addPopups(lng, lat, content)
   }
-
+  
   # observeEvent(input$raster_map_click, {
   #   leafletProxy("raster_map") %>% popups()
   # })
   
   ########Show lineplot on click#########
   getLinePlot <- reactive({
-
+    
+    op <- options(digits.secs = 6)
+    
     start <- Sys.time();
+    options(op)
     print("start")
     print(start)
-
+    
     r_type<-sta_list[[input$type,drop=F]]
     r_type_genusoi<-r_type[[input$genus]]
     # r_type_genusoi_date<-r_type_genusoi[[input$day-14+length(date_list)]]
@@ -362,33 +414,33 @@ server<-function(input, output,session){
     if (input$type=="Flower" || input$type=="Pollen") {
       col_line<-"red"
     }
-
+    
     genusoiandType <- Sys.time();
     print("genusoiandType")
     print(genusoiandType)
-
+    
     click <- input$raster_map_click
     lat<-(90+click$lat)%%180-90
     lng<-(180+click$lng)%%360-180
-
+    
     # sp<-SpatialPoints(cbind(lng, lat), proj4string=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "))
     y <- vect(cbind(lng,lat), crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 ")
-
-
+    
+    
     spdone <- Sys.time()
     print("spdone")
     print(spdone)
-
-
+    
+    
     ts <- terra::extract(x = subset(r_type_genusoi, 1:length(date_list)), y = y)
     ts <- select(as.data.frame(ts), -1)
     colnames(ts) <- c(1:length(ts[1,]))
     ts<-as.data.frame(t(ts))
-
+    
     tsdone <- Sys.time()
     print("tsdone")
     print(tsdone)
-
+    
     if (input$type=="Pollen") {
       ts[ts<0]<-0
       ts<-ts^(1/4)
@@ -396,12 +448,12 @@ server<-function(input, output,session){
     ts_df<-data.frame(ts, date_list)
     colnames(ts_df) <- c("value","date")
     # print(ts_df)
-
+    
     print("ts_df done")
     print(Sys.time())
-
+    
     plotty <- NULL
-
+    
     if (!any(is.na(ts_df))) {
       plotty <- ggplot(ts_df)+
         geom_line(aes(x=date, y=value),col=col_line)+
@@ -414,27 +466,27 @@ server<-function(input, output,session){
         ylab(variable)+
         ggtitle(paste0("Longitude: ", round(lng,2), ", Latitude: ", round(lat,2))) +
         theme(plot.title = element_text(size = 10))
-
+      
     } else {
       plotty <- ggplot()+
         theme_void ()+
         ggtitle("\n No time series available.\n Contribute by submitting your data.")
     }
-
+    
     print("created the plot")
     print(Sys.time())
-
+    
     return(plotty)
-
+    
   })
-
+  
   createLinePlot <- function(raster_map, plotty) {
     # save lineplot as svg and display it as html using addControl
     ggsave(file="plotty.svg", plot=plotty, width=3.5, height=2.5)
     content = as.character(read_file(paste0("plotty.svg")))
-
+    
     removeControl(raster_map, layerId = "lineplot") %>%
-      addControl(content, position = "topright", layerId = "lineplot")
+      addControl(content, position = "topright", layerId = "lineplot", className = "fieldset { border: 0;}")
   }
   
   # generate the popup and lineplot when user clicks map
@@ -452,12 +504,32 @@ server<-function(input, output,session){
     }
   })
   
+  ## add input panel to downloadhandler
+  getinputs_misc <- function(raster_map) {
+    data <- formData()
+    date <- as.numeric(data[3])
+    inputs <- paste("<h1><b>PhenoForecast</b></h1>", 
+                    "<p><b>Type: </b>", data[1], 
+                    "<br/><br/><b>Genus: </b>", data[2],
+                    "<br/><br/><b>Date: </b>", date_list[date - 14+length(date_list)],
+                    "</p>")
+    
+    misc <- paste("<p style=\"text-align: right; color: blue;\">Tweet #phenology", 
+                  "<span style=\"color: black;\">\"PhenoForecast\" by Yiluan Song<br/> Modified by Jessica Pan </span>",
+                  "Visit \"PhenoWatch\"",
+                  "Visit \"PhenoInfo\"</p>",
+                  sep = "<br/>")
+    
+    addControl(raster_map, inputs, position = "topleft", className = "fieldset { border: 0;}") %>%
+      addControl(misc, position = "bottomright", className = "fieldset { border: 0;}")
+  }
+  
   ######## show tweeet########
   observeEvent(input$showtweet, {
     shinyjs::hide("tweetfeed_hidden")
     shinyjs::show("tweetfeed_shown")
   })
-
+  
   ######## hide tweeet ########
   observeEvent(input$hidetweet, {
     shinyjs::hide("tweetfeed_shown")
@@ -482,6 +554,8 @@ server<-function(input, output,session){
         popups() %>%
         createLinePlot(getLinePlot())
     }
+    m = m %>% getinputs_misc()
+    
     m
   })
   
